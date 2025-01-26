@@ -15,205 +15,221 @@
 #include <algorithm>
 using namespace std;
 
-// Classes for holding data
+// Classes to represent data
 class StudentData {
 public:
-    string Name;
-    int Student_number;
-    int Class;
-    string Major;
+    string name;
+    int student_number;
+    int student_class;
+    string major;
+
+    StudentData(string name, int student_number, int student_class, string major)
+        : name(name), student_number(student_number), student_class(student_class), major(major) {}
 };
 
 class CourseData {
 public:
-    string Course_name;
-    string Course_number;
-    int Credit_hours;
-    string Department;
+    string course_name;
+    string course_number;
+    int credit_hours;
+    string department;
+
+    CourseData(string course_name, string course_number, int credit_hours, string department)
+        : course_name(course_name), course_number(course_number), credit_hours(credit_hours), department(department) {}
 };
 
 class SectionData {
 public:
-    int Section_identifier;
-    string Course_number;
-    string Semester;
-    int Year;
-    string Instructor;
+    int section_identifier;
+    string course_number;
+    string semester;
+    int year;
+    string instructor;
+
+    SectionData(int section_identifier, string course_number, string semester, int year, string instructor)
+        : section_identifier(section_identifier), course_number(course_number), semester(semester), year(year), instructor(instructor) {}
 };
 
-class Grade_ReportData {
+class GradeReportData {
 public:
-    int Student_number;
-    int Section_identifier;
-    string Grade;
+    int student_number;
+    int section_identifier;
+    string grade;
+
+    GradeReportData(int student_number, int section_identifier, string grade)
+        : student_number(student_number), section_identifier(section_identifier), grade(grade) {}
 };
 
 class PrerequisiteData {
 public:
-    string Course_number;
-    string Prerequisite_number;
+    string course_number;
+    string prerequisite_number;
+
+    PrerequisiteData(string course_number, string prerequisite_number)
+        : course_number(course_number), prerequisite_number(prerequisite_number) {}
 };
 
-// Function to split a string by a delimiter
-vector<string> split(const string& s, char delimiter) {
-    vector<string> tokens;
-    string token;
-    istringstream tokenStream(s);
-    while (getline(tokenStream, token, delimiter)) {
-        tokens.push_back(token);
-    }
-    return tokens;
-}
-
-// Function to load CSV data into a vector of classes
+// Function to parse CSV files
 template <typename T>
-void loadCSV(const string& filename, vector<T>& container, T (*parser)(const vector<string>&)) {
-    ifstream file(filename);
+vector<T> loadCSV(const string& file_path, function<T(vector<string>&)> createObject) {
+    vector<T> data;
+    ifstream file(file_path);
     string line;
-    getline(file, line); // Skip the header
+
+    // Skip the header line
+    getline(file, line);
+
     while (getline(file, line)) {
-        vector<string> tokens = split(line, ',');
-        container.push_back(parser(tokens));
-    }
-}
-
-// Parsers for each CSV type
-StudentData parseStudent(const vector<string>& tokens) {
-    return {tokens[0], stoi(tokens[1]), stoi(tokens[2]), tokens[3]};
-}
-
-CourseData parseCourse(const vector<string>& tokens) {
-    return {tokens[0], tokens[1], stoi(tokens[2]), tokens[3]};
-}
-
-SectionData parseSection(const vector<string>& tokens) {
-    return {stoi(tokens[0]), tokens[1], tokens[2], stoi(tokens[3]), tokens[4]};
-}
-
-Grade_ReportData parseGradeReport(const vector<string>& tokens) {
-    return {stoi(tokens[0]), stoi(tokens[1]), tokens[2]};
-}
-
-PrerequisiteData parsePrerequisite(const vector<string>& tokens) {
-    return {tokens[0], tokens[1]};
-}
-
-// Query functions
-void retrieveTranscript(const string& studentName, const vector<StudentData>& students,
-                        const vector<CourseData>& courses, const vector<SectionData>& sections,
-                        const vector<Grade_ReportData>& gradeReports) {
-    // Find the student
-    auto studentIt = find_if(students.begin(), students.end(), [&studentName](const StudentData& s) {
-        return s.Name == studentName;
-    });
-
-    if (studentIt == students.end()) {
-        cout << "Student not found." << endl;
-        return;
-    }
-
-    int studentNumber = studentIt->Student_number;
-
-    cout << "Transcript for " << studentName << ":\n";
-    for (const auto& gradeReport : gradeReports) {
-        if (gradeReport.Student_number == studentNumber) {
-            auto sectionIt = find_if(sections.begin(), sections.end(), [&gradeReport](const SectionData& s) {
-                return s.Section_identifier == gradeReport.Section_identifier;
-            });
-
-            if (sectionIt != sections.end()) {
-                auto courseIt = find_if(courses.begin(), courses.end(), [&sectionIt](const CourseData& c) {
-                    return c.Course_number == sectionIt->Course_number;
-                });
-
-                if (courseIt != courses.end()) {
-                    cout << courseIt->Course_number << " - " << courseIt->Course_name << " | Grade: "
-                         << gradeReport.Grade << " | Semester: " << sectionIt->Semester
-                         << " " << sectionIt->Year << endl;
-                }
-            }
+        stringstream ss(line);
+        string cell;
+        vector<string> row;
+        while (getline(ss, cell, ',')) {
+            cell.erase(remove(cell.begin(), cell.end(), '\r'), cell.end()); // Remove potential carriage returns
+            row.push_back(cell);
         }
+        data.push_back(createObject(row));
     }
+    return data;
 }
 
-void studentsInSection(const string& courseName, const string& semester, int year,
-                       const vector<CourseData>& courses, const vector<SectionData>& sections,
-                       const vector<StudentData>& students, const vector<Grade_ReportData>& gradeReports) {
-    // Find the course
-    auto courseIt = find_if(courses.begin(), courses.end(), [&courseName](const CourseData& c) {
-        return c.Course_name == courseName;
+// Load functions for each type of data
+vector<StudentData> loadStudents(const string& file_path) {
+    return loadCSV<StudentData>(file_path, [](vector<string>& row) {
+        return StudentData(row[0], stoi(row[1]), stoi(row[2]), row[3]);
     });
+}
 
-    if (courseIt == courses.end()) {
-        cout << "Course not found." << endl;
-        return;
-    }
+vector<CourseData> loadCourses(const string& file_path) {
+    return loadCSV<CourseData>(file_path, [](vector<string>& row) {
+        return CourseData(row[0], row[1], stoi(row[2]), row[3]);
+    });
+}
 
-    string courseNumber = courseIt->Course_number;
+vector<SectionData> loadSections(const string& file_path) {
+    return loadCSV<SectionData>(file_path, [](vector<string>& row) {
+        return SectionData(stoi(row[0]), row[1], row[2], stoi(row[3]), row[4]);
+    });
+}
 
-    cout << "Students in " << courseName << " (" << semester << " " << year << "):\n";
-    for (const auto& section : sections) {
-        if (section.Course_number == courseNumber && section.Semester == semester && section.Year == year) {
-            for (const auto& gradeReport : gradeReports) {
-                if (gradeReport.Section_identifier == section.Section_identifier) {
-                    auto studentIt = find_if(students.begin(), students.end(), [&gradeReport](const StudentData& s) {
-                        return s.Student_number == gradeReport.Student_number;
-                    });
+vector<GradeReportData> loadGradeReports(const string& file_path) {
+    return loadCSV<GradeReportData>(file_path, [](vector<string>& row) {
+        return GradeReportData(stoi(row[0]), stoi(row[1]), row[2]);
+    });
+}
 
-                    if (studentIt != students.end()) {
-                        cout << studentIt->Name << " | Grade: " << gradeReport.Grade << endl;
+vector<PrerequisiteData> loadPrerequisites(const string& file_path) {
+    return loadCSV<PrerequisiteData>(file_path, [](vector<string>& row) {
+        return PrerequisiteData(row[0], row[1]);
+    });
+}
+
+// Functions to query data
+void retrieveTranscript(const string& student_name, const vector<StudentData>& students, const vector<CourseData>& courses, const vector<SectionData>& sections, const vector<GradeReportData>& grades) {
+    bool student_found = false;
+    for (const auto& student : students) {
+        if (student.name == student_name) {
+            student_found = true;
+            cout << "Name: " << student.name << "\n";
+            cout << "Student Number: " << student.student_number << "\n";
+            cout << "Class: " << student.student_class << "\n";
+            cout << "Major: " << student.major << "\n";
+            cout << "Courses Enrolled:\n";
+
+            for (const auto& grade : grades) {
+                if (grade.student_number == student.student_number) {
+                    for (const auto& section : sections) {
+                        if (section.section_identifier == grade.section_identifier) {
+                            for (const auto& course : courses) {
+                                if (course.course_number == section.course_number) {
+                                    cout << "- " << section.section_identifier << ", " << course.course_name << ", " << section.semester << ", " << section.year << ", Grade: " << grade.grade << "\n";
+                                }
+                            }
+                        }
                     }
                 }
             }
+            break;
         }
+    }
+    if (!student_found) {
+        cout << "Error: Student \"" << student_name << "\" not found.\n";
     }
 }
 
-void listPrerequisites(const string& courseName, const vector<CourseData>& courses, const vector<PrerequisiteData>& prerequisites) {
-    // Find the course
-    auto courseIt = find_if(courses.begin(), courses.end(), [&courseName](const CourseData& c) {
-        return c.Course_name == courseName;
-    });
+void studentsInSection(const string& course_name, const string& semester, int year, const vector<CourseData>& courses, const vector<SectionData>& sections, const vector<StudentData>& students, const vector<GradeReportData>& grades) {
+    bool section_found = false;
+    for (const auto& course : courses) {
+        if (course.course_name == course_name) {
+            cout << "Course Name: " << course.course_name << "\n";
+            cout << "Course Number: " << course.course_number << "\n";
+            cout << "Credit Hours: " << course.credit_hours << "\n";
+            cout << "Department: " << course.department << "\n";
+            cout << "Student(s) Enrolled:\n";
 
-    if (courseIt == courses.end()) {
-        cout << "Course not found." << endl;
-        return;
-    }
-
-    string courseNumber = courseIt->Course_number;
-
-    cout << "Prerequisites for " << courseName << ":\n";
-    for (const auto& prerequisite : prerequisites) {
-        if (prerequisite.Course_number == courseNumber) {
-            auto prereqCourseIt = find_if(courses.begin(), courses.end(), [&prerequisite](const CourseData& c) {
-                return c.Course_number == prerequisite.Prerequisite_number;
-            });
-
-            if (prereqCourseIt != courses.end()) {
-                cout << prereqCourseIt->Course_number << " - " << prereqCourseIt->Course_name << endl;
+            for (const auto& section : sections) {
+                if (section.course_number == course.course_number && section.semester == semester && section.year == year) {
+                    section_found = true;
+                    for (const auto& grade : grades) {
+                        if (grade.section_identifier == section.section_identifier) {
+                            for (const auto& student : students) {
+                                if (student.student_number == grade.student_number) {
+                                    cout << "- " << student.name << ", Grade: " << grade.grade << "\n";
+                                }
+                            }
+                        }
+                    }
+                }
             }
+            break;
         }
+    }
+    if (!section_found) {
+        cout << "Error: Section \"" << course_name << ", " << semester << " " << year << "\" not found.\n";
+    }
+}
+
+void prerequisites(const string& course_name, const vector<CourseData>& courses, const vector<PrerequisiteData>& prerequisites) {
+    bool course_found = false;
+    for (const auto& course : courses) {
+        if (course.course_name == course_name) {
+            course_found = true;
+            cout << "Course Name: " << course.course_name << "\n";
+            cout << "Course Number: " << course.course_number << "\n";
+            cout << "Credit Hours: " << course.credit_hours << "\n";
+            cout << "Department: " << course.department << "\n";
+            cout << "Prerequisites:\n";
+
+            for (const auto& prerequisite : prerequisites) {
+                if (prerequisite.course_number == course.course_number) {
+                    for (const auto& prereq_course : courses) {
+                        if (prereq_course.course_number == prerequisite.prerequisite_number) {
+                            cout << "- " << prereq_course.course_name << ", " << prereq_course.course_number << ", " << prereq_course.credit_hours << ", " << prereq_course.department << "\n";
+                        }
+                    }
+                }
+            }
+            break;
+        }
+    }
+    if (!course_found) {
+        cout << "Error: Course \"" << course_name << "\" not found.\n";
     }
 }
 
 int main() {
-    // Load data
-    vector<StudentData> students;
-    vector<CourseData> courses;
-    vector<SectionData> sections;
-    vector<Grade_ReportData> gradeReports;
-    vector<PrerequisiteData> prerequisites;
-
-    loadCSV("Student.csv", students, parseStudent);
-    loadCSV("Course.csv", courses, parseCourse);
-    loadCSV("Section.csv", sections, parseSection);
-    loadCSV("Grade_Report.csv", gradeReports, parseGradeReport);
-    loadCSV("Prerequisite.csv", prerequisites, parsePrerequisite);
+    // Load data from CSV files
+    vector<StudentData> students = loadStudents("Student.csv");
+    vector<CourseData> courses = loadCourses("Course.csv");
+    vector<SectionData> sections = loadSections("Section.csv");
+    vector<GradeReportData> grades = loadGradeReports("Grade_Report.csv");
+    vector<PrerequisiteData> prerequisites_list = loadPrerequisites("Prerequisite.csv");
 
     // Example queries
-    retrieveTranscript("Smith", students, courses, sections, gradeReports);
-    studentsInSection("Database", "Fall", 2008, courses, sections, students, gradeReports);
-    listPrerequisites("Database", courses, prerequisites);
+    retrieveTranscript("Smith", students, courses, sections, grades);
+    cout << "\n";
+    studentsInSection("Database", "Fall", 2008, courses, sections, students, grades);
+    cout << "\n";
+    prerequisites("Database", courses, prerequisites_list);
 
     return 0;
 }

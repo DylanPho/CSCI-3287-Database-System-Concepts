@@ -1,0 +1,4 @@
+﻿Course_number,Prerequisite_number
+CS3380,CS3320
+CS3380,MATH2410
+CS3320,CS1310
