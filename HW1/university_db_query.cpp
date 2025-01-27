@@ -1,3 +1,11 @@
+// Name: Dylan Phoutthavong
+// Date: January 25th, 2025
+// Course: CSCI 3287
+// Task:
+        // 1. Retrieve the transcript—a list of all courses and grades—of ‘Smith’
+        // 2. List the names of students who took the section of the ‘Database’ course offered in fall 2008 and their grades in that section
+        // 3. List the prerequisites of the ‘Database’ course
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -8,6 +16,7 @@
 using namespace std;
 
 // Helper function to trim whitespace from a string
+// Ensures that input strings are free of extra spaces or newlines
 string trim(const string &str) {
     size_t first = str.find_first_not_of(" \t\n\r");
     if (first == string::npos) return "";
@@ -16,6 +25,7 @@ string trim(const string &str) {
 }
 
 // Utility function to load CSV data into a vector of strings
+// Skips the header row and trims each cell for consistent data
 vector<vector<string>> loadCSV(const string &filename) {
     vector<vector<string>> data;
     ifstream file(filename);
@@ -45,6 +55,7 @@ vector<vector<string>> loadCSV(const string &filename) {
 }
 
 // Define the Student class
+// Represents a student's basic information, such as name, number, class level, and major
 class Student {
 public:
     string name;
@@ -58,6 +69,7 @@ public:
 };
 
 // Define the Course class
+// Represents course details such as name, number, credit hours, and department
 class Course {
 public:
     string courseName;
@@ -66,11 +78,12 @@ public:
     string department;
 
     Course() : courseName(""), courseNumber(""), creditHours(0), department("") {}
-    Course(string number, string name, int hours, string dept)
+    Course(string name, string number, int hours, string dept)
         : courseName(name), courseNumber(number), creditHours(hours), department(dept) {}
 };
 
 // Define the Section class
+// Represents a course section, including its ID, associated course number, semester, and year
 class Section {
 public:
     string sectionID;
@@ -84,6 +97,7 @@ public:
 };
 
 // Define the GradeReport class
+// Represents a student's grade in a specific section
 class GradeReport {
 public:
     string studentNumber;
@@ -96,6 +110,7 @@ public:
 };
 
 // Define the Prerequisite class
+// Represents a relationship between a course and its prerequisite course
 class Prerequisite {
 public:
     string courseNumber;
@@ -106,8 +121,9 @@ public:
         : courseNumber(courseNumber), prerequisiteNumber(prerequisiteNumber) {}
 };
 
-// Function to retrieve and display the transcript of a student
+// Function to retrieve and display a student's transcript
 void retrieveTranscript(const string &studentName, const map<string, Student> &students, const vector<GradeReport> &gradeReports, const map<string, Section> &sections, const map<string, Course> &courses) {
+    // Search for the student by name
     for (const auto &[key, student] : students) {
         if (student.name == studentName) {
             cout << "\nName: " << student.name << endl;
@@ -116,6 +132,7 @@ void retrieveTranscript(const string &studentName, const map<string, Student> &s
             cout << "Major: " << student.major << endl;
             cout << "Courses Enrolled:" << endl;
 
+            // Search for grade reports associated with the student
             for (const auto &gradeReport : gradeReports) {
                 if (gradeReport.studentNumber == student.studentNumber) {
                     if (sections.find(gradeReport.sectionID) != sections.end()) {
@@ -132,14 +149,16 @@ void retrieveTranscript(const string &studentName, const map<string, Student> &s
     cout << "\nStudent " << studentName << " not found." << endl;
 }
 
-// Function to search for students in a course section
+// Function to list students in a course section
 void studentsInSection(const string &courseName, const string &courseNumber, const string &semester, const string &year, const map<string, Course> &courses, const map<string, Section> &sections, const vector<GradeReport> &gradeReports, const map<string, Student> &students) {
+    // Output course and section details
     cout << "\nCourse Name: " << courseName << endl;
     cout << "Course Number: " << courseNumber << endl;
     cout << "Semester: " << semester << endl;
     cout << "Year: " << year << endl;
     cout << "Student(s) Enrolled:" << endl;
 
+    // Find matching sections and list enrolled students
     for (const auto &[key, section] : sections) {
         if (section.courseNumber == courseNumber && section.semester == semester && section.year == year) {
             for (const auto &gradeReport : gradeReports) {
@@ -156,14 +175,14 @@ void studentsInSection(const string &courseName, const string &courseNumber, con
     cout << "\nNo sections found for the specified course and semester." << endl;
 }
 
-// Function to list prerequisites of a course
+// Function to list prerequisites for a course
 void prerequisites(const string &courseName, const map<string, Course> &courses, const vector<Prerequisite> &prerequisites) {
     string courseNumber = "";
 
-    // Check for course name in courses to get the course number
+    // Find the course number based on the course name
     for (const auto &[key, course] : courses) {
-        if (course.courseNumber == courseNumber) {
-            courseName = course.courseName;
+        if (course.courseName == courseName) {
+            courseNumber = course.courseNumber;
             cout << "\nCourse Name: " << course.courseName << endl;
             cout << "Course Number: " << course.courseNumber << endl;
             cout << "Credit Hours: " << course.creditHours << endl;
@@ -172,17 +191,20 @@ void prerequisites(const string &courseName, const map<string, Course> &courses,
         }
     }
 
-    if (courseName.empty()) {
+    if (courseNumber.empty()) {
         cout << "\nCourse \"" << courseName << "\" not found." << endl;
         return;
     }
 
-    // Check for prerequisites using the course number
+    // List prerequisites for the course
     cout << "Prerequisites:" << endl;
     bool hasPrerequisites = false;
+
     for (const auto &prereq : prerequisites) {
         if (prereq.courseNumber == courseNumber) {
             hasPrerequisites = true;
+
+            // Retrieve the course details for the prerequisite number
             if (courses.find(prereq.prerequisiteNumber) != courses.end()) {
                 const Course &prereqCourse = courses.at(prereq.prerequisiteNumber);
                 cout << "- " << prereqCourse.courseName << ", " << prereqCourse.courseNumber
@@ -240,39 +262,50 @@ int main() {
         prerequisiteList.push_back(Prerequisite(row[0], row[1]));
     }
 
-    // Menu for user input
-    int choice;
-    cout << "Choose an option:\n"
-         << "1. Retrieve a student transcript\n"
-         << "2. Search for students in a course section\n"
-         << "3. Find the prerequisites for a course\n"
-         << "Enter your choice: ";
-    cin >> choice;
-    cin.ignore(); // Ignore newline after the integer input
+    // Main menu loop with error handling
+    while (true) {
+        try {
+            int choice;
+            cout << "\nChoose an option:\n"
+                 << "1. Retrieve a student transcript\n"
+                 << "2. Search for students in a course section\n"
+                 << "3. Find the prerequisites for a course\n"
+                 << "4. Exit\n"
+                 << "Enter your choice: ";
+            cin >> choice;
+            cin.ignore(); // Ignore newline after integer input
 
-    if (choice == 1) {
-        string studentName;
-        cout << "\nEnter the name of the student to retrieve their transcript: ";
-        getline(cin, studentName);
-        retrieveTranscript(studentName, students, gradeReports, sections, courses);
-    } else if (choice == 2) {
-        string courseName, courseNumber, semester, year;
-        cout << "\nEnter the course name: ";
-        getline(cin, courseName);
-        cout << "Enter the course number: ";
-        getline(cin, courseNumber);
-        cout << "Enter the semester: ";
-        getline(cin, semester);
-        cout << "Enter the year: ";
-        getline(cin, year);
-        studentsInSection(courseName, courseNumber, semester, year, courses, sections, gradeReports, students);
-    } else if (choice == 3) {
-        string courseName;
-        cout << "\nEnter the course number to list prerequisites: ";
-        getline(cin, courseName);
-        prerequisites(courseName, courses, prerequisiteList);
-    } else {
-        cout << "\nInvalid choice." << endl;
+            if (choice == 1) {
+                string studentName;
+                cout << "\nEnter the name of the student to retrieve their transcript: ";
+                getline(cin, studentName);
+                retrieveTranscript(studentName, students, gradeReports, sections, courses);
+            } else if (choice == 2) {
+                string courseName, courseNumber, semester, year;
+                cout << "\nEnter the course name: ";
+                getline(cin, courseName);
+                cout << "Enter the course number: ";
+                getline(cin, courseNumber);
+                cout << "Enter the semester: ";
+                getline(cin, semester);
+                cout << "Enter the year: ";
+                getline(cin, year);
+                studentsInSection(courseName, courseNumber, semester, year, courses, sections, gradeReports, students);
+            } else if (choice == 3) {
+                string courseName;
+                cout << "\nEnter the course name to list prerequisites: ";
+                getline(cin, courseName);
+                prerequisites(courseName, courses, prerequisiteList);
+            } else if (choice == 4) {
+                cout << "\nExiting program..." << endl;
+                break;
+            } else {
+                throw invalid_argument("Invalid choice. Please enter a number between 1 and 4.");
+            }
+        } catch (const exception &e) {
+            cout << "\nError: " << e.what() << endl;
+            cout << "Please try again." << endl;
+        }
     }
 
     return 0;
