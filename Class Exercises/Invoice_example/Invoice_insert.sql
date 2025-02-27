@@ -1,70 +1,41 @@
----------------------------
----Create CATEGORY table---
----------------------------
+-- --------------------------------------------------------
+-- CATEGORY
+-- --------------------------------------------------------
+INSERT INTO CATEGORY (Category_id, Category) VALUES (1, 'Electronic');
+INSERT INTO CATEGORY (Category_id, Category) VALUES (2, 'Furniture');
+INSERT INTO CATEGORY (Category_id, Category) VALUES (3, 'Sports');
+INSERT INTO CATEGORY (Category_id, Category) VALUES (4, 'Automotive');
+INSERT INTO CATEGORY (Category_id, Category) VALUES (5, 'Books');
 
-CREATE TABLE IF NOT EXISTS CATEGORY (
-    Category_id INT NOT NULL,
-    Category_name VARCHAR(45) NOT NULL,
-    PRIMARY KEY (Category_id)
-);
+-- --------------------------------------------------------
+-- PRODUCT
+-- --------------------------------------------------------
+INSERT INTO PRODUCT (Product_id, Description, Category, Price) VALUES (10, 'Watch', 1, 250);
+INSERT INTO PRODUCT (Product_id, Description, Category, Price) VALUES (20, 'Computer', 1, 900);
+INSERT INTO PRODUCT (Product_id, Description, Category, Price) VALUES (30, 'Bike', 3, 1200);
+INSERT INTO PRODUCT (Product_id, Description, Category, Price) VALUES (40, 'Tire', 4, 200);
+INSERT INTO PRODUCT (Product_id, Description, Category, Price) VALUES (50, 'Database', 5, 88);
 
----------------------------
----Create PRODUCT table---
----------------------------
+-- --------------------------------------------------------
+-- CLIENT
+-- --------------------------------------------------------
+INSERT INTO CLIENT (Client_id, Name, Address, City, State) VALUES (1, 'S-MART', '2389 Smart ln', 'Denver', 'CO');
+INSERT INTO CLIENT (Client_id, Name, Address, City, State) VALUES (2, 'Have It All', '123 Warehouse st', 'Pueblo', 'CO');
+INSERT INTO CLIENT (Client_id, Name, Address, City, State) VALUES (3, 'Everything++', '555 Storage ave', 'Topeka', 'KS');
 
-CREATE TABLE IF NOT EXISTS PRODUCT (
-    Product_id	INT NOT NULL,
-    Description VARCHAR(45) NOT NULL,
-    CATEGORY	INT NOT NULL,
-    PRICE	DECIMAL NULL,
-    PRIMARY KEY (Product_id),
-    FOREIGN KEY (Category)
-      REFERENCES CATEGORY (Category_id)
-      ON DELETE NO ACTION
-      ON UPDATE CASCADE
-    );
+-- --------------------------------------------------------
+-- INVOICE
+-- --------------------------------------------------------
+INSERT INTO INVOICE (Invoice_number, Client_id, Payment) VALUES (1001, 1, 0);
+INSERT INTO INVOICE (Invoice_number, Client_id, Payment) VALUES (1002, 2, 800);
+INSERT INTO INVOICE (Invoice_number, Client_id, Payment) VALUES (1003, 3, 9000);
+INSERT INTO INVOICE (Invoice_number, Client_id, Payment) VALUES (1004, 2, 2500);
 
----------------------------
----Create CLIENT table---
----------------------------
-CREATE TABLE IF NOT EXISTS CLIENT (
-    Client_id INT NOT NULL,
-    Name VARCHAR(45) NOT NULL,
-    Address VARCHAR(45) NOT NULL,
-    City VARCHAR(45) NOT NULL,
-    State VARCHAR(45) NOT NULL,
-    PRIMARY KEY (Client_id)
-);
-
----------------------------
----Create INVOICE table---
----------------------------
-CREATE TABLE IF NOT EXISTS INVOICE (
-    Invoice_id INT NOT NULL,
-    Client_id INT NOT NULL,
-    Invoice_date DATE NOT NULL,
-    PRIMARY KEY (Invoice_id),
-    FOREIGN KEY (Client_id)
-      REFERENCES CLIENT (Client_id)
-      ON DELETE NO ACTION
-      ON UPDATE CASCADE
-);
-
----------------------------
----Create ITEM table---
----------------------------
-CREATE TABLE IF NOT EXISTS ITEM (
-    Item_id INT NOT NULL,
-    Invoice_id INT NOT NULL,
-    Product_id INT NOT NULL,
-    Quantity INT NOT NULL,
-    PRIMARY KEY (Item_id),
-    FOREIGN KEY (Invoice_id)
-      REFERENCES INVOICE (Invoice_id)
-      ON DELETE NO ACTION
-      ON UPDATE CASCADE,
-    FOREIGN KEY (Product_id)
-      REFERENCES PRODUCT (Product_id)
-      ON DELETE NO ACTION
-      ON UPDATE CASCADE
-);
+-- --------------------------------------------------------
+-- ITEM
+-- --------------------------------------------------------
+INSERT INTO ITEM (Invoice_number, Product_id, Quantity) VALUES (1001, 10, 3);
+INSERT INTO ITEM (Invoice_number, Product_id, Quantity) VALUES (1001, 30, 1);
+INSERT INTO ITEM (Invoice_number, Product_id, Quantity) VALUES (1002, 40, 4);
+INSERT INTO ITEM (Invoice_number, Product_id, Quantity) VALUES (1003, 20, 10);
+INSERT INTO ITEM (Invoice_number, Product_id, Quantity) VALUES (1004, 10, 10);
