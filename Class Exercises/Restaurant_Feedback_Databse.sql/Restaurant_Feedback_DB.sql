@@ -15,7 +15,10 @@ ALTER TABLE cuisine_restaurant ADD FOREIGN KEY (Cuisine) REFERENCES cuisine(Id);
 ALTER TABLE cuisine_restaurant ADD FOREIGN KEY (Restaurant) REFERENCES restaurant(Id);
 ALTER TABLE interaction ADD UNIQUE (Title);
 ALTER TABLE user ADD UNIQUE (email);
-
+ALTER TABLE user_feedback ADD FOREIGN KEY (User_Id) REFERENCES user(Id);
+ALTER TABLE user_feedback ADD FOREIGN KEY (Restaurant_Id) REFERENCES restaurant(Id);
+ALTER TABLE user_feedback ADD FOREIGN KEY (Interaction_Id) REFERENCES interaction(Id);
+ALTER TABLE user_feedback ADD CHECK (Rating BETWEEN 1 AND 5 OR Rating IS NULL);
 
 -- 2) Create the inserts to populate the database
 create table if not exists restaurant (
@@ -58,10 +61,19 @@ INSERT INTO cuisine_restaurant (Cuisine, Restaurant) VALUES
 (6, 2),
 (5, 1),
 (5, 5);
--- remove any duplicate rows
-DELETE c1 FROM cuisine_restaurant c1
-INNER JOIN cuisine_restaurant c2 
-WHERE c1.Cuisine = c2.Cuisine AND c1.Restaurant = c2.Restaurant AND c1.Id > c2.Id;
+-- remove identical rows
+DELETE FROM cuisine_restaurant
+WHERE (Cuisine, Restaurant) IN (
+    SELECT Cuisine, Restaurant FROM (
+        SELECT 
+            Cuisine, 
+            Restaurant, 
+            ROW_NUMBER() OVER (PARTITION BY Cuisine, Restaurant ORDER BY Cuisine) AS row_num
+        FROM 
+            cuisine_restaurant
+    ) AS subquery
+    WHERE row_num > 1
+);
 
 create table if not exists cuisine (
     Id int,
@@ -105,6 +117,35 @@ INSERT into user (Id, First_name, Last_name, email, Gender) VALUES
 (9, 'Imani', 'Torres', 'nec.ante@icloud.edu', 'Female'),
 (10, 'Tate', 'Boyd', 'integer.vitae@protonmail.net', 'Female');
 
+Create table if not exists user_feedback (
+    User_Id int,
+    Restaurant_Id int,
+    Interaction_Id int,
+    Rating int,
+    Time_stamp datetime
+);
+INSERT into user_feedback (User_Id, Restaurant_Id, Interaction_Id, Rating, Time_stamp) VALUES 
+(7, 3, 3, 4, '2024-12-18 18:26:00'),
+(7, 6, 2, NULL, '2025-06-02 18:23:00'),
+(6, 2, 2, NULL, '2024-12-11 21:00:00'),
+(7, 5, 3, 2, '2026-02-02 07:42:00'),
+(3, 5, 2, NULL, '2025-05-04 03:54:00'),
+(9, 6, 3, 2, '2025-12-14 15:37:00'),
+(5, 5, 2, NULL, '2024-11-26 09:25:00'),
+(9, 2, 3, 3, '2024-05-14 04:27:00'),
+(9, 4, 3, 3, '2024-11-19 09:16:00'),
+(2, 3, 2, NULL, '2024-12-01 05:33:00'),
+(9, 5, 3, 2, '2024-10-29 20:32:00'),
+(8, 5, 2, NULL, '2025-02-23 11:23:00'),
+(5, 3, 3, 1, '2024-07-21 12:31:00'),
+(9, 3, 2, NULL, '2025-07-02 05:07:00'),
+(5, 1, 3, 4, '2024-05-14 05:57:00'),
+(6, 4, 2, NULL, '2025-03-20 08:48:00'),
+(2, 1, 2, NULL, '2024-04-28 23:01:00'),
+(9, 1, 3, 4, '2025-11-24 22:35:00'),
+(2, 6, 3, 4, '2024-02-04 07:27:00'),
+(7, 2, 2, NULL, '2025-08-22 19:55:00');
+
 -- 3) Write a transaction to update the name of a restuarant to "SpiceThing"
 START TRANSACTION;
 UPDATE restaurant
@@ -113,10 +154,13 @@ WHERE Id = 1;
 COMMIT;
 
 -- 4) Write a query to show the total rating (Review) per restaurant and the average rating. Display the restaurant name, the total and average ratings.
-SELECT r.Name, COUNT(i.Title) as Total, AVG(i.Title) as Average
+SELECT r.Name, COUNT(i.Title) as Reviews, AVG(uf.Rating) as Average_Rating
 FROM restaurant r
+JOIN user_feedback uf
+ON r.Id = uf.Restaurant_Id
 JOIN interaction i
-ON r.Id = i.Id
+ON uf.Interaction_Id = i.Id
+WHERE i.Title = 'Review'
 GROUP BY r.Name;
 
 -- 5) Write a query to count the number of restaurants by cuisine. Display the cusine name and total count.
