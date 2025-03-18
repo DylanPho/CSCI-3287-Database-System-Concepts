@@ -82,29 +82,3 @@ User_Id Restaurant_Id Interaction_Id Rating Timestamp
 9 1 3 4 11/24/2025 22:35
 2 6 3 4 2/4/2024 7:27
 7 2 2 NULL 8/22/2025 19:55
-restaurant
-Id Name Address Phone Email
-1 TutoDolce 964-1564 Lorem, Ave (853) 683-9146 gravida.sagittis@outlook.couk
-2 Pasta Bowl P.O. Box 628, 2749 Eget Avenue(483) 177-6909 cras.vehicula.aliquet@yahoo.org
-3 Soup and Sabor Ap #815-8970 Risus. Ave (386) 951-9878 vitae.risus@hotmail.com
-4 SeaLand 417-1668 Ultricies Ave (857) 722-5734 laoreet.lectus@google.net
-5 Sandwich King 809-2246 Sapien Ave (363) 613-1266 quisque.porttitor.eros@outlook.com
-6 Pasta Bowl 123 Noname Start St (123) 456-7890 support@example.com
-Exercise:
-Save all the SQL code to a .SQL or .TXT file so that you can re-try the commands (or refine them) without starting from scratch.
-1) Create the Restaurant Database with constraints (Primary key, Foreign key and Unique).
-2) Create the inserts to populate the database
-3) Write a transaction to update the name of restaurant #6 to “SpiceThing”
-4) Write a query to show the total rating (Review) per restaurant and the average rating. Display the restaurant name, the total and average
-ratings.
-5) Write a query to count the number of restaurants by cuisine. Display the cuisine name and total count
-Deliverable: Submit the file with the SQL commands.
-Note:
-1. The Cuisine name and the Interaction Title must be
-unique values.
-2. The Rating value in the User_Feedback table is a
-value between 1 and 5 but can also be NULL. The
-value is only use for Interactions of type “Review”
-3. Use Auto_Increment for the IDs PKs that are not
-member of an identifying relationship.
-1
