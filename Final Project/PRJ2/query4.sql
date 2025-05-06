@@ -1,5 +1,5 @@
 -- query4.sql: Aggregation - Crimes per premises type
-SELECT p.Premis_Desc, COUNT(cr.DR_NO) AS incident_count
+SELECT cp.Premis_Desc, COUNT(*) AS Crime_Count
 FROM CrimeReports cr
-JOIN Crime_premises p ON cr.Premis_Cd = p.Premis_Cd
-GROUP BY p.Premis_Desc;
+JOIN Crime_premises cp ON cr.Premis_Cd = cp.Premis_Cd
+GROUP BY cp.Premis_Desc;
